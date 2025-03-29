@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,7 @@
             align-items: center;
             height: 100vh;
         }
+
         .signup-container {
             background: #fff;
             padding: 20px;
@@ -21,17 +23,40 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 400px;
         }
+
         .signup-container h2 {
             text-align: center;
             margin-bottom: 20px;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
+        .scanner-group {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .scanner-btn {
+            padding: 10px 15px;
+            margin: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .scanner-btn:hover {
+            background-color: #0056b3;
+        }
+
         .form-group label {
             display: block;
             margin-bottom: 5px;
         }
+
         .form-group input,
         .form-group select {
             width: 100%;
@@ -39,6 +64,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+
         .signup-btn {
             width: 100%;
             padding: 10px;
@@ -48,6 +74,14 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        .video {
+            display: none;
+            width: 100%;
+            margin-top: 10px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+        }
+
     </style>
     <script>
         // Calculate age based on the selected date of birth
@@ -106,10 +140,11 @@
         }
     </script>
 </head>
+
 <body>
     <div class="signup-container">
         <h2>User Sign-Up</h2>
-        <form onsubmit="return registerUser();">
+        < onsubmit="return registerUser();">
             <div class="form-group">
                 <label for="first_name">First Name: *</label>
                 <input type="text" id="first_name" placeholder="Enter your first name" required>
@@ -309,6 +344,89 @@
                     <option value="Zimbabwe">Zimbabwe</option>
                 </select>
             </div>
+            <button type="submit" class="signup-btn">Sign Up</button>
+
+            <!-- Fingerprint Scanner -->
+            <div class="scanner-group">
+                <button type="button" class="scanner-btn" onclick="simulateFingerprintScan()">Fingerprint
+                    Scanner</button>
+                <p id="fingerprint-message"></p>
+            </div>
+
+            <!-- Iris Scanner -->
+            <div class="scanner-group">
+                <button type="button" class="scanner-btn" onclick="simulateIrisScan()">Iris Scanner</button>
+                <p id="iris-message"></p>
+            </div>
+
+            <!-- Face Scanner -->
+            <div class="scanner-group">
+                <button type="button" class="scanner-btn" onclick="simulateFaceScan()">Face Scanner</button>
+                <video id="camera-feed" autoplay></video>
+                <p id="face-message"></p>
+            </div>
+
+    
+
+            <button type="submit" class="scanner-btn" style="background-color: #28a745;">Submit</button>
+
+            </form>
+    </div>
+
+    <script>
+        // Simulate Fingerprint Scan
+        function simulateFingerprintScan() {
+            document.getElementById('fingerprint-message').textContent = "Place your fingers on the fingerprint scanner hardware device...";
+            setTimeout(() => {
+                document.getElementById('fingerprint-message').textContent = "Fingerprint Scan Completed!";
+            }, 3000); // Simulate a 3-second scan
+        }
+
+        // Simulate Iris Scan
+        function simulateIrisScan() {
+            const retinaMessage = document.getElementById('iris-message');
+            retinaMessage.textContent = "Opening camera... Place your iris inside this iris outline.";
+            setTimeout(() => {
+                retinaMessage.textContent = "Iris Scan Completed!";
+            }, 3000); // Simulate a 3-second scan
+        }
+
+        function simulateFaceScan() {
+    const video = document.getElementById('camera-feed');
+    const faceMessage = document.getElementById('face-message');
+
+    // Try to access the camera
+    navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+            video.style.display = "block"; // Show the video element
+            video.srcObject = stream;
+            faceMessage.textContent = "Capture your face. Move left and right for profile detection.";
+        })
+        .catch((err) => {
+            // Improved error handling
+            console.error("Camera access error:", err);
+            faceMessage.textContent = `Error accessing camera: ${err.message}. Please check your browser settings.`;
+        });
+
+    // Simulate scan completion after 5 seconds
+    setTimeout(() => {
+        faceMessage.textContent = "Face Scan Completed with movement detection!";
+        video.style.display = "none"; // Hide the video feed
+        const stream = video.srcObject;
+        if (stream) {
+            const tracks = stream.getTracks();
+            tracks.forEach((track) => track.stop()); // Stop all video tracks
+        }
+    }, 5000);
+}
+        
+
+    </script>
+
+</body>
+
+</html>
             <button type="submit" class="signup-btn">Sign Up</button>
         </form>
     </div>
