@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        .content {
+            margin: 20px auto;
+            max-width: 800px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #007bff;
+            color: white;
+        }
+        button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .approve-btn {
+            background: #28a745;
+            color: white;
+        }
+        .reject-btn {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Admin Dashboard</h1>
+    </div>
+    <div class="content">
+        <h2>Pending User Approvals</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Middle Name</th>
+                    <th>Last Name</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Country</th>
+                    <th>Approval Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTable">
+                <!-- User rows will be dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fetch users from localStorage
+        let users = JSON.parse(localStorage.getItem("users")) || [];
+        const userTable = document.getElementById("userTable");
+
+        // Function to remove duplicates based on first, middle, and last name
+        function removeDuplicates(usersArray) {
+            const uniqueUsers = [];
+            const seenEntries = new Set();
+
+            usersArray.forEach(user => {
+                const uniqueIdentifier = `${user.firstName}${user.middleName}${user.lastName}`; // Combine names as identifier
+                if (!seenEntries.has(uniqueIdentifier)) {
+                    seenEntries.add(uniqueIdentifier);
+                    uniqueUsers.push(user);
+                }
+            });
+
+            return uniqueUsers;
+        }
+
+        // Load user data into the table
+        function loadUserData() {
+            userTable.innerHTML = ""; // Clear table content
+
+            // Remove duplicate applications
+            users = removeDuplicates(users);
+
+            // Display unique users
+            users.forEach((user, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${user.firstName}</td>
+                    <td>${user.middleName || "N/A"}</td>
+                    <td>${user.lastName}</td>
+                    <td>${user.age}</td>
+                    <td>${user.gender}</td>
+                    <td>${user.country}</td>
+                    <td>${user.approvalStatus}</td>
+                    <td>
+                        <button class="approve-btn" onclick="approveUser(${index})">Approve</button>
+                        <button class="reject-btn" onclick="rejectUser(${index})">Reject</button>
+                    </td>
+                `;
+                userTable.appendChild(row);
+            });
+        }
+
+        // Approve user
+        function approveUser(index) {
+            users[index].approvalStatus = "Approved!";
+            users[index].uniqueId = `UID${Date.now()}`; // Generate a unique ID
+            localStorage.setItem("users", JSON.stringify(users)); // Update localStorage
+            alert(`User '${users[index].firstName} ${users[index].lastName}' approved with unique ID: ${users[index].uniqueId}!`);
+            loadUserData(); // Refresh the table
+        }
+
+        // Reject user
+        function rejectUser(index) {
+            const confirmed = confirm(`Are you sure you want to reject '${users[index].firstName} ${users[index].lastName}'?`);
+            if (confirmed) {
+                users.splice(index, 1); // Remove user
+                localStorage.setItem("users", JSON.stringify(users)); // Update localStorage
+                alert("User rejected and removed.");
+                loadUserData(); // Refresh the table
+            }
+        }
+
+        // Initial loading of user data
+        loadUserData();
+    </script>
+</body>
+</html>
