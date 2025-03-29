@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .admin-btn {
+            background: #007bff;
+            color: white;
+        }
+        .user-btn {
+            background: #28a745;
+            color: white;
+        }
+        .signup-btn {
+            background: #ff9900;
+            color: white;
+        }
+        .signin-btn {
+            background: #28a745;
+            color: white;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .section-divider {
+            margin: 20px 0;
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome! Choose an Option</h2>
+        <!-- Admin Section -->
+        <button class="admin-btn" onclick="redirectTo('admin_login.html')">Admin Panel</button>
+        <div class="section-divider">or</div>
+        <!-- User Options -->
+        <button class="signup-btn" onclick="redirectTo('user_signup.html')">New User? Sign Up</button>
+        <button class="signin-btn" onclick="redirectTo('user_signin.html')">Existing User? Sign In</button>
+    </div>
+
+    <script>
+        // Function to handle redirection
+        function redirectTo(page) {
+            window.location.href = page;
+        }
+    </script>
+</body>
+</html>
