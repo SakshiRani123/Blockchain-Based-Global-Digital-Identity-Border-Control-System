@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f4;
+            background-color:white;
         }
         .header {
             background: #007bff;
@@ -20,7 +20,7 @@
         .content {
             margin: 20px auto;
             max-width: 800px;
-            background: #fff;
+            background: white;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -30,7 +30,7 @@
             border-collapse: collapse;
         }
         table, th, td {
-            border: 1px solid #ccc;
+            border: 1px solid white;
             padding: 10px;
             text-align: center;
         }
@@ -80,34 +80,53 @@
     </div>
 
     <script>
-        // Fetch users from localStorage
-        let users = JSON.parse(localStorage.getItem("users")) || [];
         const userTable = document.getElementById("userTable");
 
-        // Function to remove duplicates based on first, middle, and last name
-        function removeDuplicates(usersArray) {
-            const uniqueUsers = [];
-            const seenEntries = new Set();
-
-            usersArray.forEach(user => {
-                const uniqueIdentifier = `${user.firstName}${user.middleName}${user.lastName}`; // Combine names as identifier
-                if (!seenEntries.has(uniqueIdentifier)) {
-                    seenEntries.add(uniqueIdentifier);
-                    uniqueUsers.push(user);
-                }
-            });
-
-            return uniqueUsers;
+        // Redirect to login if no token is found
+        if (!localStorage.getItem("adminToken")) {
+            alert("You are not logged in. Redirecting to login page...");
+            window.location.href = "admin_login.html"; // Replace with your admin login page
         }
 
-        // Load user data into the table
-        function loadUserData() {
+        // Fetch users from the backend
+        async function fetchUsers() {
+            try {
+                const token = localStorage.getItem("adminToken");
+                console.log("Admin Token:", token); // Debug log
+
+                const response = await fetch("http://localhost:5000/admin/getPendingUsers", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 400) {
+                        alert("Session expired or unauthorized. Redirecting to login page...");
+                        localStorage.removeItem("adminToken"); // Clear invalid token
+                        window.location.href = "admin_login.html"; // Redirect to login page
+                    }
+                    throw new Error("Failed to fetch users");
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    populateTable(data.users);
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (error) {
+                console.error("Error fetching users:", error);
+                alert("An error occurred while fetching users.");
+            }
+        }
+
+        // Populate the table with user data
+        function populateTable(users) {
             userTable.innerHTML = ""; // Clear table content
 
-            // Remove duplicate applications
-            users = removeDuplicates(users);
-
-            // Display unique users
             users.forEach((user, index) => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
@@ -119,8 +138,8 @@
                     <td>${user.country}</td>
                     <td>${user.approvalStatus}</td>
                     <td>
-                        <button class="approve-btn" onclick="approveUser(${index})">Approve</button>
-                        <button class="reject-btn" onclick="rejectUser(${index})">Reject</button>
+                        <button class="approve-btn" onclick="approveUser('${user._id}')">Approve</button>
+                        <button class="reject-btn" onclick="rejectUser('${user._id}')">Reject</button>
                     </td>
                 `;
                 userTable.appendChild(row);
@@ -128,27 +147,60 @@
         }
 
         // Approve user
-        function approveUser(index) {
-            users[index].approvalStatus = "Approved!";
-            users[index].uniqueId = `UID${Date.now()}`; // Generate a unique ID
-            localStorage.setItem("users", JSON.stringify(users)); // Update localStorage
-            alert(`User '${users[index].firstName} ${users[index].lastName}' approved with unique ID: ${users[index].uniqueId}!`);
-            loadUserData(); // Refresh the table
-        }
+        async function approveUser(userId) {
+            try {
+                const response = await fetch("http://localhost:5000/admin/approveUser", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + localStorage.getItem("adminToken"),
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId }) // Ensure userId is sent
+                });
 
-        // Reject user
-        function rejectUser(index) {
-            const confirmed = confirm(`Are you sure you want to reject '${users[index].firstName} ${users[index].lastName}'?`);
-            if (confirmed) {
-                users.splice(index, 1); // Remove user
-                localStorage.setItem("users", JSON.stringify(users)); // Update localStorage
-                alert("User rejected and removed.");
-                loadUserData(); // Refresh the table
+                const data = await response.json();
+                if (data.success) {
+                    alert(`User approved successfully with Unique ID: ${data.uniqueId}`);
+                    fetchUsers(); // Refresh the table
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (error) {
+                console.error("Error approving user:", error);
+                alert("An error occurred while approving the user.");
             }
         }
 
-        // Initial loading of user data
-        loadUserData();
+        // Reject user
+        async function rejectUser(userId) {
+            const confirmed = confirm("Are you sure you want to reject this user?");
+            if (!confirmed) return;
+
+            try {
+                const response = await fetch("http://localhost:5000/admin/rejectUser", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + localStorage.getItem("adminToken"),
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert("User rejected successfully.");
+                    fetchUsers(); // Refresh the table
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (error) {
+                console.error("Error rejecting user:", error);
+                alert("An error occurred while rejecting the user.");
+            }
+        }
+
+        // Fetch users on page load
+        fetchUsers();
     </script>
 </body>
 </html>
